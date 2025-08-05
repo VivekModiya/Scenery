@@ -1,8 +1,267 @@
-# Scenery 🎬
+# Prompt2Video - AI-Powered Educational Video Generator
 
-*The first AI that thinks like an animator*
+Transform any concept into a 15-second animated educational video using AI and Manim.
 
-**Scenery transforms educational ideas into stunning animated videos through simple conversation. The first AI that thinks like an animator, understanding your concepts and generating programmatic animations you can edit and refine. From math proofs to science processes, create engaging content that makes learning stick.**
+## 🚀 Features
+
+- **Simple Input**: Enter any concept you want explained
+- **AI-Powered**: Uses GPT-4 or Gemini to generate explanations and Manim code
+- **Automated Animation**: Creates educational videos using Manim
+- **REST API**: Clean API for integration with frontend applications
+- **Job Queue**: Async processing with Redis-backed job management
+- **Docker Support**: Easy deployment with Docker Compose
+
+## 🏗️ Architecture
+
+```
+Frontend (React) → API Gateway → Go Backend → LLM Service → Manim Renderer
+                                      ↓
+                              Redis Job Queue ← Workers
+                                      ↓
+                              PostgreSQL Database
+```
+
+## 📁 Project Structure
+
+```
+prompt2video/
+├── cmd/
+│   └── api/
+│       └── main.go              # Application entry point
+├── internal/
+│   ├── api/
+│   │   └── server.go            # HTTP server setup
+│   ├── config/
+│   │   └── config.go            # Configuration management
+│   ├── database/
+│   │   └── database.go          # Database initialization
+│   ├── handlers/
+│   │   └── video_handler.go     # HTTP request handlers
+│   ├── middleware/
+│   │   └── middleware.go        # HTTP middleware
+│   ├── models/
+│   │   └── models.go            # Data models
+│   └── services/
+│       ├── llm_service.go       # LLM integration
+│       ├── video_service.go     # Video rendering
+│       └── job_service.go       # Job queue management
+├── docker-compose.yml           # Docker services
+├── Dockerfile                   # API container
+├── Makefile                     # Build automation
+├── go.mod                       # Go dependencies
+└── .env.example                 # Environment template
+```
+
+## 🛠️ Setup & Installation
+
+### Prerequisites
+
+- Go 1.21+
+- Docker & Docker Compose
+- PostgreSQL (if running locally)
+- Redis (if running locally)
+- OpenAI API Key or Gemini API Key
+
+### Quick Start with Docker
+
+1. **Clone and configure**:
+
+   ```bash
+   git clone <repository>
+   cd prompt2video
+   cp .env.example .env
+   # Edit .env with your API keys
+   ```
+
+2. **Start services**:
+
+   ```bash
+   make docker-up
+   ```
+
+3. **Test the API**:
+   ```bash
+   curl -X POST http://localhost:8080/api/v1/videos/generate \
+     -H "Content-Type: application/json" \
+     -d '{"prompt": "Explain Pythagorean theorem", "subject": "mathematics"}'
+   ```
+
+### Local Development
+
+1. **Install dependencies**:
+
+   ```bash
+   make deps
+   make install-tools
+   ```
+
+2. **Start database services**:
+
+   ```bash
+   docker-compose up postgres redis -d
+   ```
+
+3. **Run the API**:
+   ```bash
+   make run
+   # Or for hot reload:
+   make dev
+   ```
+
+## 📡 API Endpoints
+
+### Generate Video
+
+```http
+POST /api/v1/videos/generate
+Content-Type: application/json
+
+{
+  "prompt": "Explain photosynthesis",
+  "subject": "biology"
+}
+```
+
+**Response:**
+
+```json
+{
+  "id": "123e4567-e89b-12d3-a456-426614174000",
+  "status": "queued",
+  "created_at": "2025-01-01T12:00:00Z"
+}
+```
+
+### Check Job Status
+
+```http
+GET /api/v1/videos/status/{jobId}
+```
+
+**Response:**
+
+```json
+{
+  "id": "123e4567-e89b-12d3-a456-426614174000",
+  "status": "completed",
+  "video_url": "/storage/video_123_1609459200.mp4",
+  "progress": 100,
+  "created_at": "2025-01-01T12:00:00Z",
+  "completed_at": "2025-01-01T12:00:15Z"
+}
+```
+
+### Get Video Details
+
+```http
+GET /api/v1/videos/{jobId}
+```
+
+### List Generated Videos
+
+```http
+GET /api/v1/videos?page=1&limit=10
+```
+
+### Job Management
+
+```http
+GET /api/v1/jobs/{jobId}        # Get job details
+DELETE /api/v1/jobs/{jobId}     # Cancel job
+```
+
+## 🔧 Configuration
+
+Environment variables (see `.env.example`):
+
+| Variable         | Description                  | Default            |
+| ---------------- | ---------------------------- | ------------------ |
+| `PORT`           | API server port              | `8080`             |
+| `DATABASE_URL`   | PostgreSQL connection string |                    |
+| `REDIS_URL`      | Redis connection string      |                    |
+| `OPENAI_API_KEY` | OpenAI API key               |                    |
+| `GEMINI_API_KEY` | Google Gemini API key        |                    |
+| `VIDEO_STORAGE`  | Video storage directory      | `./storage/videos` |
+| `WORKER_COUNT`   | Number of worker processes   | `3`                |
+
+## 🎬 Video Generation Process
+
+1. **User submits prompt** → API creates job record
+2. **Job queued** → Redis manages processing queue
+3. **Worker picks job** → Updates status to "processing"
+4. **LLM generates content** → Creates explanation + Manim code
+5. **Manim renders video** → Produces MP4 file
+6. **Job completed** → Video available for download
+
+## 🐳 Docker Setup
+
+The application includes a complete Docker setup:
+
+- **PostgreSQL**: Database for job and video metadata
+- **Redis**: Job queue and caching
+- **API Server**: Go backend service
+- **Manim Container**: For video rendering (optional)
+
+## 🧪 Testing
+
+```bash
+# Run all tests
+make test
+
+# Run with coverage
+go test -cover ./...
+
+# Benchmark tests
+go test -bench=. ./...
+```
+
+## 📈 Monitoring & Logging
+
+- Health check endpoint: `GET /health`
+- Structured logging with request IDs
+- Metrics for job processing times
+- Rate limiting per IP address
+
+## 🚀 Deployment
+
+### Production Deployment
+
+1. **Build for production**:
+
+   ```bash
+   make build-linux
+   ```
+
+2. **Deploy with Docker**:
+
+   ```bash
+   docker-compose -f docker-compose.prod.yml up -d
+   ```
+
+3. **Scale workers**:
+   ```bash
+   docker-compose up --scale api=3
+   ```
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## 🆘 Support
+
+For support and questions:
+
+- Create an issue on GitHub
+- Check the documentation in `/docs`
+- Review the API examples in `/examples`
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
@@ -32,22 +291,26 @@ Scenery is an AI-powered video generation platform that converts natural languag
 ### Installation
 
 1. **Clone the repository**
+
    ```bash
    git clone https://github.com/yourusername/scenery.git
    cd scenery
    ```
 
 2. **Install Python dependencies**
+
    ```bash
    pip install -r requirements.txt
    ```
 
 3. **Install Manim**
+
    ```bash
    pip install manim
    ```
 
 4. **Install frontend dependencies**
+
    ```bash
    cd frontend
    npm install
@@ -55,12 +318,14 @@ Scenery is an AI-powered video generation platform that converts natural languag
    ```
 
 5. **Set up environment variables**
+
    ```bash
    cp .env.example .env
    # Add your OpenAI API key and other configurations
    ```
 
 6. **Run the application**
+
    ```bash
    # Start the backend
    python app.py
@@ -74,23 +339,23 @@ Visit `http://localhost:3000` to start creating!
 ## 💬 How It Works
 
 1. **Describe Your Concept**: Tell Scenery what you want to teach
+
    ```
-   "Explain the Pythagorean theorem with a visual proof showing 
+   "Explain the Pythagorean theorem with a visual proof showing
    how the squares relate to each other"
    ```
 
 2. **AI Generates Script**: Scenery creates Manim code for your concept
-   
 3. **Review & Edit**: Modify scenes, timing, colors, and content
 
 4. **Generate Video**: Watch your idea come to life as a professional animation
 
 ## 🎥 Example Prompts
 
-- *"Create a video showing how photosynthesis works with animated molecules"*
-- *"Explain sorting algorithms with visual comparisons of bubble sort vs quicksort"*
-- *"Show the water cycle with animated weather patterns and transformations"*
-- *"Demonstrate calculus derivatives using geometric interpretations"*
+- _"Create a video showing how photosynthesis works with animated molecules"_
+- _"Explain sorting algorithms with visual comparisons of bubble sort vs quicksort"_
+- _"Show the water cycle with animated weather patterns and transformations"_
+- _"Demonstrate calculus derivatives using geometric interpretations"_
 
 ## 🏗️ Project Structure
 
@@ -137,6 +402,7 @@ DATABASE_URL=postgresql://user:password@localhost/scenery
 ### Manim Settings
 
 Scenery automatically configures Manim for optimal educational video rendering:
+
 - **Resolution**: 1080p (configurable)
 - **Frame Rate**: 30fps
 - **Quality**: High
@@ -225,4 +491,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 **Made with ❤️ for educators who want to bring their ideas to life**
 
-*Transform your teaching. Engage your audience. Make learning stick.*
+_Transform your teaching. Engage your audience. Make learning stick._
