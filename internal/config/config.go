@@ -20,9 +20,6 @@ func Load() *Config {
 	return &Config{
 		Port:          getEnv("PORT", "8080"),
 		DatabaseURL:   getEnv("DATABASE_URL", "postgres://localhost/prompt2video?sslmode=disable"),
-		RedisURL:      getEnv("REDIS_URL", "redis://localhost:6379"),
-		OpenAIAPIKey:  getEnv("OPENAI_API_KEY", ""),
-		GeminiAPIKey:  getEnv("GEMINI_API_KEY", ""),
 		VideoStorage:  getEnv("VIDEO_STORAGE", "./storage/videos"),
 		MaxFileSize:   getEnvAsInt64("MAX_FILE_SIZE", 100*1024*1024), // 100MB
 		WorkerCount:   getEnvAsInt("WORKER_COUNT", 3),

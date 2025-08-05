@@ -2,7 +2,6 @@ package main
 
 import (
 	"log"
-
 	"prompt2video/internal/api"
 	"prompt2video/internal/config"
 	"prompt2video/internal/database"

@@ -77,103 +77,15 @@ func (s *LLMService) GenerateExplanation(prompt, subject string) (*models.LLMRes
 }
 
 func (s *LLMService) buildSystemPrompt(subject string) string {
-	return fmt.Sprintf(`You are an expert educator and animator who creates educational content using Manim (Mathematical Animation Engine).
-
-Your task is to:
-1. Provide a clear, concise explanation of the concept
-2. Generate Manim Python code that creates a 15-second educational animation
-
-Guidelines:
-- Keep explanations under 200 words
-- Focus on %s concepts when relevant
-- Create visually engaging animations
-- Use appropriate Manim classes (Text, Circle, Square, Arrow, etc.)
-- Include smooth transitions and animations
-- Ensure the animation runs for approximately 15 seconds
-- Use clear, readable fonts and colors
-
-Return your response in this exact format:
-EXPLANATION:
-[Your explanation here]
-
-MANIM_CODE:
-` + "```python" + `
-[Your Manim code here]
-` + "```" + ``, subject)
+	// Create a system prompt that instructs the LLM to generate educational animations
 }
 
 func (s *LLMService) buildUserPrompt(prompt string) string {
-	return fmt.Sprintf(`Create an educational animation explaining: %s
-
-Make sure the animation is engaging, informative, and suitable for learning. The animation should be approximately 15 seconds long.`, prompt)
+// Create a user prompt that includes the subject and the user's request
 }
 
 func (s *LLMService) parseResponse(content string) (explanation, manimCode string, err error) {
-	// Simple parsing - look for EXPLANATION: and MANIM_CODE: markers
-	explanationStart := findMarker(content, "EXPLANATION:")
-	manimStart := findMarker(content, "MANIM_CODE:")
-
-	if explanationStart == -1 || manimStart == -1 {
-		return "", "", fmt.Errorf("response format invalid - missing markers")
-	}
-
-	// Extract explanation
-	explanationEnd := manimStart
-	if explanationStart+12 < len(content) && explanationEnd > explanationStart+12 {
-		explanation = content[explanationStart+12 : explanationEnd]
-		explanation = trimWhitespace(explanation)
-	}
-
-	// Extract Manim code - look for the code block after MANIM_CODE:
-	remainingContent := content[manimStart:]
-	codeStart := findMarker(remainingContent, "```python")
-	if codeStart == -1 {
-		return "", "", fmt.Errorf("could not find python code block")
-	}
-	
-	// Find the closing ```
-	searchStart := codeStart + 9 // Skip "```python"
-	codeEnd := findMarker(remainingContent[searchStart:], "```")
-	if codeEnd == -1 {
-		return "", "", fmt.Errorf("could not find end of code block")
-	}
-
-	codeStartIdx := codeStart + 9 // Skip "```python"
-	codeEndIdx := searchStart + codeEnd
-	if codeStartIdx < len(remainingContent) && codeEndIdx <= len(remainingContent) {
-		manimCode = remainingContent[codeStartIdx:codeEndIdx]
-		manimCode = trimWhitespace(manimCode)
-	}
-
-	if explanation == "" || manimCode == "" {
-		return "", "", fmt.Errorf("failed to extract explanation or Manim code")
-	}
-
-	return explanation, manimCode, nil
+// Parse the LLM response to extract the explanation and Manim code
 }
 
-func findMarker(text, marker string) int {
-	for i := 0; i <= len(text)-len(marker); i++ {
-		if text[i:i+len(marker)] == marker {
-			return i
-		}
-	}
-	return -1
-}
 
-func trimWhitespace(text string) string {
-	start := 0
-	end := len(text)
-
-	// Trim leading whitespace
-	for start < len(text) && (text[start] == ' ' || text[start] == '\n' || text[start] == '\t' || text[start] == '\r') {
-		start++
-	}
-
-	// Trim trailing whitespace
-	for end > start && (text[end-1] == ' ' || text[end-1] == '\n' || text[end-1] == '\t' || text[end-1] == '\r') {
-		end--
-	}
-
-	return text[start:end]
-}

@@ -5,7 +5,7 @@ Transform any concept into a 15-second animated educational video using AI and M
 ## 🚀 Features
 
 - **Simple Input**: Enter any concept you want explained
-- **AI-Powered**: Uses GPT-4 or Gemini to generate explanations and Manim code
+- **AI-Powered**: Uses LLM to generate explanations and Manim code
 - **Automated Animation**: Creates educational videos using Manim
 - **REST API**: Clean API for integration with frontend applications
 - **Job Queue**: Async processing with Redis-backed job management
@@ -43,8 +43,7 @@ prompt2video/
 │   │   └── models.go            # Data models
 │   └── services/
 │       ├── llm_service.go       # LLM integration
-│       ├── video_service.go     # Video rendering
-│       └── job_service.go       # Job queue management
+│       └── video_service.go     # Video rendering
 ├── docker-compose.yml           # Docker services
 ├── Dockerfile                   # API container
 ├── Makefile                     # Build automation
@@ -151,11 +150,6 @@ GET /api/v1/videos/status/{jobId}
 }
 ```
 
-### Get Video Details
-
-```http
-GET /api/v1/videos/{jobId}
-```
 
 ### List Generated Videos
 
@@ -163,12 +157,6 @@ GET /api/v1/videos/{jobId}
 GET /api/v1/videos?page=1&limit=10
 ```
 
-### Job Management
-
-```http
-GET /api/v1/jobs/{jobId}        # Get job details
-DELETE /api/v1/jobs/{jobId}     # Cancel job
-```
 
 ## 🔧 Configuration
 
