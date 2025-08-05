@@ -1,1 +1,39 @@
+# VS Code
 .vscode
+
+# Environment variables
+.env
+
+# Binaries
+prompt2video
+prompt2video_unix
+main
+
+# Storage
+storage/
+videos/
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Go
+vendor/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+go.work
+
+# Docker
+.docker/
+
+# Temporary files
+tmp/
+temp/
